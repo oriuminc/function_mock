@@ -4,81 +4,78 @@ require_once '../function_mock.php';
 
 class DrupalMockFrameworkTest extends PHPUnit_Framework_TestCase
 {
-    public function testResetStubs() {
-        FunctionMock::resetStubs();
+  public function testResetStubs() {
+    FunctionMock::resetStubs();
 
-        // global $stubFunctionList;
+    $stubFunctionList = FunctionMock::getStubbedFunctionList();
 
-        $stubFunctionList = FunctionMock::getStubbedFunctionList();
+    // Check that the array has no stubbed values.
+    foreach ($stubFunctionList as &$stubFunctionListItem) {
+        $this->assertEquals(false, array_key_exists('stub_value', $stubFunctionListItem));
+    }        
+  }
 
-        // Check that the array has no stubbed values.
-        foreach ($stubFunctionList as &$stubFunctionListItem) {
-            $this->assertEquals(false, array_key_exists('stub_value', $stubFunctionListItem));
-        }        
-    }
+  public function testStub() {
+    // Stub a function and verify it shows what you need.
 
-    public function testStub() {
-        // Stub a function and verify it shows what you need.
-        // global $stubFunctionList;
+    // Set up the test input.
+    $testStubValue = 3;
+    $functionName = 'abc';
 
-        // Set up the test input.
-        $testStubValue = 3;
-        $functionName = 'abc';
+    FunctionMock::stub($functionName, $testStubValue);
 
-        FunctionMock::stub($functionName, $testStubValue);
+    // Check that it sets it correctly.
+    $stubFunctionList = FunctionMock::getStubbedFunctionList();
+    $this->assertEquals($testStubValue, $stubFunctionList[$functionName]['stub_value']);
+  }
 
-        // Check that it sets it correctly.
-        $stubFunctionList = FunctionMock::getStubbedFunctionList();
-        $this->assertEquals($testStubValue, $stubFunctionList[$functionName]['stub_value']);
-    }
+  public function testGetStubbedValueForStub() {
+    $testStubValue = 3;
+    $functionName = 'abc';
 
-    public function testGetStubbedValueForStub() {
-        $testStubValue = 3;
-        $functionName = 'abc';
+    FunctionMock::stub($functionName, $testStubValue);
 
-        FunctionMock::stub($functionName, $testStubValue);
+    $actualResult = FunctionMock::getStubbedValue($functionName);
 
-        $actualResult = FunctionMock::getStubbedValue($functionName);
+    $this->assertEquals($testStubValue, $actualResult);
+  }
 
-        $this->assertEquals($testStubValue, $actualResult);
-    }
+  /**
+   * @expectedException        StubMissingException
+   * @expectedExceptionMessage nonExistentStub has not been stubbed yet.
+   */
+  public function testGetStubbedValueForNonExistentStub() {
+    $actualResult = FunctionMock::getStubbedValue('nonExistentStub');
 
-    /**
-     * @expectedException        StubMissingException
-     * @expectedExceptionMessage nonExistentStub has not been stubbed yet.
-     */
-    public function testGetStubbedValueForNonExistentStub() {
-        $actualResult = FunctionMock::getStubbedValue('nonExistentStub');
+    $this->assertEquals($testStubValue, $actualResult);
+  }
 
-        $this->assertEquals($testStubValue, $actualResult);
-    }
+  public function testGetUniqueFunctions() {
+    $result = FunctionMock::findFunctionsNeedingStubs(array('./test_php.php'));
 
-    public function testGetUniqueFunctions() {
-        $result = FunctionMock::findFunctionsNeedingStubs(array('./test_php.php'));
+    $this->assertEquals(3, count($result));
+  }
 
-        $this->assertEquals(3, count($result));
-    }
+  public function testGenerateStubs() {
+    // Generate a stub method dynamically and ensure you can call it.
+    $result = FunctionMock::generateStubs(array('test_method1', 'test_method2'));
 
-    public function testGenerateStubs() {
-        // Generate a stub method dynamically and ensure you can call it.
-        $result = FunctionMock::generateStubs(array('test_method1', 'test_method2'));
+    $this->assertEquals('function test_method1() { return FunctionMock::getStubbedValue(__FUNCTION__); } ' . 
+        'function test_method2() { return FunctionMock::getStubbedValue(__FUNCTION__); } ', $result);
 
-        $this->assertEquals('function test_method1() { return FunctionMock::getStubbedValue(__FUNCTION__); } ' . 
-            'function test_method2() { return FunctionMock::getStubbedValue(__FUNCTION__); } ', $result);
+    FunctionMock::stub('test_method1', 3);
 
-        FunctionMock::stub('test_method1', 3);
+    $this->assertEquals(3, test_method1());
+  }
 
-        $this->assertEquals(3, test_method1());
-    }
+  public function testGenerateStubbableFunctions() {
+    // Generate a stub method dynamically and ensure you can call it.
+    FunctionMock::generateStubbableFunctions(array('./test_php.php'));
 
-    public function testGenerateStubbableFunctions() {
-        // Generate a stub method dynamically and ensure you can call it.
-        FunctionMock::generateStubbableFunctions(array('./test_php.php'));
+    FunctionMock::stub('drupal_http_request', 3);
 
-        FunctionMock::stub('drupal_http_request', 3);
-
-        $this->assertEquals(3, drupal_http_request());
-    }
+    $this->assertEquals(3, drupal_http_request());
+  }
 
 }
 ?>
