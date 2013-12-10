@@ -2,7 +2,7 @@
 
 require_once '../function_mock.php';
 
-class DrupalMockFrameworkTest extends PHPUnit_Framework_TestCase
+class FunctionMockTest extends PHPUnit_Framework_TestCase
 {
   public function testResetStubs() {
     FunctionMock::resetStubs();
@@ -53,12 +53,12 @@ class DrupalMockFrameworkTest extends PHPUnit_Framework_TestCase
   public function testGetUniqueFunctions() {
     $result = FunctionMock::findFunctionsNeedingStubs(array('./test_php.php'));
 
-    $this->assertEquals(3, count($result));
+    $this->assertEquals(7, count($result));
   }
 
-  public function testGenerateStubs() {
+  public function testCreateStubbableFunctionDefinitions() {
     // Generate a stub method dynamically and ensure you can call it.
-    $result = FunctionMock::generateStubs(array('test_method1', 'test_method2'));
+    $result = FunctionMock::createStubbableFunctionDefinitions(array('test_method1', 'test_method2'));
 
     $this->assertEquals('function test_method1() { return FunctionMock::getStubbedValue(__FUNCTION__); } ' . 
         'function test_method2() { return FunctionMock::getStubbedValue(__FUNCTION__); } ', $result);
@@ -72,10 +72,23 @@ class DrupalMockFrameworkTest extends PHPUnit_Framework_TestCase
     // Generate a stub method dynamically and ensure you can call it.
     FunctionMock::generateStubbableFunctions(array('./test_php.php'));
 
-    FunctionMock::stub('drupal_http_request', 3);
+    FunctionMock::stub('abc', 3);
 
-    $this->assertEquals(3, drupal_http_request());
+    $this->assertEquals(3, abc('http://abc.com/get'));
   }
+
+  // public function testDrupalBlockModuleFunctions() {
+  //   // Generate a stub method dynamically and ensure you can call it.
+  //   $result = FunctionMock::generateStubbableFunctions(array('./block.module'));
+
+  //   $page = array();
+  //   block_page_build($page);
+
+  //   print_r($result);
+
+  //   // $this->assertEquals(3, drupal_http_request('http://abc.com/get'));
+
+  // }
 
 }
 ?>
