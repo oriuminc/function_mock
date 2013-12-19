@@ -22,7 +22,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $testStubValue = 3;
     $functionName = 'testStub';
 
-    FunctionMock::createMockFunctionDefinitions(array($functionName));
+    FunctionMock::createMockFunctionDefinition($functionName);
     FunctionMock::stub($functionName, $testStubValue);
 
     // Check that it sets it correctly.
@@ -33,6 +33,8 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $testStubValue = 3;
     $functionName = 'test';
 
+    FunctionMock::createMockFunctionDefinition($functionName);
+    FunctionMock::stub($functionName, $testStubValue);
     FunctionMock::stub($functionName, $testStubValue);
 
     $actualResult = FunctionMock::getStubbedValue($functionName);
@@ -47,7 +49,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $functionName = 'testStubParams';
     $paramList = array('param1', 'param2');
 
-    FunctionMock::createMockFunctionDefinitions(array($functionName));
+    FunctionMock::createMockFunctionDefinition($functionName);
     FunctionMock::stub($functionName, $testStubValue);
     FunctionMock::stub($functionName, $testStubValueWithParam, $paramList);
 
@@ -84,7 +86,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $testStubValue = 3;
     $functionName = 'testResetStub';
 
-    FunctionMock::createMockFunctionDefinitions(array($functionName));
+    FunctionMock::createMockFunctionDefinition($functionName);
     FunctionMock::stub($functionName, $testStubValue);
 
     // Test first that the stub exists and works.
@@ -103,7 +105,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     }
   }
 
-  public function testDrupalBlockModuleFunctions() {
+  public function testSomeDrupalBlockModuleFunctions() {
     // Generate a stub method dynamically and ensure you can call it.
     $result = FunctionMock::generateMockFunctions(array('./block.module'));
 
@@ -111,21 +113,36 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     // as intended, and simply control the return values to what you'd expect
     // in your test scenario. This gives you control to test different scenarios
     // and verify the results.
-    $page = array();
-    global $theme;
+    global $user;
+    $user = (object) array('uid' => 12345);
 
-    $theme = 'abc';
+    define('DRUPAL_NO_CACHE', 1);
+    define('DRUPAL_CACHE_CUSTOM', 2);
 
-    FunctionMock::stub('drupal_theme_initialize', '');
-    FunctionMock::stub('system_region_list', array());
-    FunctionMock::stub('menu_get_item', array('path' => 'abc'));
-    FunctionMock::stub('drupal_static_reset', '');
+    $block = (object) array('cache' => array(), 'module' => '', 'delta' => '');
 
-    block_page_build($page);
+    FunctionMock::stub('variable_get', TRUE);
+    FunctionMock::stub('drupal_render_cid_parts', array());
 
-    // $this->assertEquals(3, drupal_http_request('http://abc.com/get'));
+    $result = _block_get_cache_id($block);
 
+    $this->assertEquals(':', $result);
   }
 
+  // TODO: Write some exception handling cases.
+  // /**
+  //  * @expectedException        BadFunctionCallException
+  //  * @expectedExceptionMessage testNonMockedFunction does not exist or is not a mock.
+  //  */
+  // public function testCannotStubNotMockedFunction() {
+  //   // Set up the test input.
+  //   $testStubValue = 3;
+  //   $functionName = 'testNonMockedFunction';
+
+  //   FunctionMock::stub($functionName, $testStubValue);
+
+  //   // Check that it sets it correctly.
+  //   $this->assertEquals($testStubValue, testStub());        
+  // }  
 }
 ?>

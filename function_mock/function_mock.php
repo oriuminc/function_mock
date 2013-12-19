@@ -36,12 +36,22 @@ class FunctionMock
     } 
   }
 
+  /**
+   * Checks with a stub based on a set of parameters exists.
+   *
+   * @param $functionName
+   *   The name of the function to retrieve the stubbed value from.
+   * @param $paramList
+   *   Array of parameters passed into the function to match on.
+   * @return
+   *   TRUE if it's found, FALSE otherwise.
+   */
   private static function paramListSpecificStubExists($functionName, $paramList) {
     return $paramList !== NULL && array_key_exists(serialize($paramList), self::$stubFunctionList[$functionName]);    
   }
 
   /** 
-   * Sets up a stub value for a given mock function.
+   * Sets up a stub value for a given mock function. 
    *
    * @param $functionName
    *   The name of the function to retrieve the stubbed value from.
@@ -50,8 +60,13 @@ class FunctionMock
    * @param $paramList
    *   Optional array of parameters you want an exact match on, so you can 
    *   do a conditional stub.
+   * @throws FunctionDoesNotExistException
    */
   public static function stub($functionName, $returnValue, $paramList = NULL) {
+    if (!function_exists($functionName)) {
+      throw new FunctionDoesNotExistException($functionName);
+    }
+
     if ($paramList !== NULL) {
       // Make a key out of the $paramList array, by simply serializing it into a string.
       self::$stubFunctionList[$functionName][serialize($paramList)] = $returnValue;
@@ -199,7 +214,7 @@ class FunctionMock
    *   Combined contents of all the files and their PHP code loaded and executed. Note if any errors occur on
    *   any specific file being loaded, it will be ignored.
    */  
-  public static function loadFiles($srcFiles) {
+  private static function loadFiles($srcFiles) {
     $result = '';
     foreach ($srcFiles as $srcFile) {
       include_once $srcFile;
@@ -208,6 +223,24 @@ class FunctionMock
 
     return $result;
   }
+
+  /**
+   * Generate an actual function definition that can be stubbed, based on a function name.
+   *
+   * @param $functionName
+   *   Function name you want a mock for.
+   * @return
+   *   PHP function definition code that was executed.
+   */  
+  public static function createMockFunctionDefinition($functionName) {
+    $newFunctionDefinition = 'function ' . $functionName . '() { return FunctionMock::getStubbedValue(__FUNCTION__, count(func_get_args()) > 0 ? func_get_args() : NULL); } ';
+
+    if (!function_exists($functionName)) {
+      eval($newFunctionDefinition);
+    }
+
+    return $newFunctionDefinition;
+  }  
 
   /**
    * Generate actual function definitions that can be stubbed, based on an array of function names.
@@ -221,16 +254,12 @@ class FunctionMock
     $functionString = '';
     
     foreach ($functionList as $item) {      
-      $newFunctionDefinition = 'function ' . $item . '() { return FunctionMock::getStubbedValue(__FUNCTION__, count(func_get_args()) > 0 ? func_get_args() : NULL); } ';
+      $result = self::createMockFunctionDefinition($item);
 
-      if (!function_exists($item)) {
-        eval($newFunctionDefinition);
-      }
-
-      $functionString .= $newFunctionDefinition;
+      $functionString .= $result;
     }
 
-    return $functionString;
+    return $functionString;    
   }
 
   /**
@@ -259,6 +288,23 @@ class StubMissingException extends Exception
   public function __construct($functionName, $code = 0, Exception $previous = null) {
       $this->message = $functionName . ' has not been stubbed yet.' . "\r\n" .
         'Please call FunctionMock::stub(\'' . $functionName . '\', <stub_value>) to set a value.';
+ 
+      parent::__construct($this->message, $code, $previous);
+  }
+
+  public function __toString() {
+    return $this->message;
+  }
+}
+
+/**
+ * Custom exception for a function not existing.
+ */
+class FunctionDoesNotExistException extends Exception
+{
+  public function __construct($functionName, $code = 0, Exception $previous = null) {
+      $this->message = $functionName . ' does not exist, either in real or mocked format.' . "\r\n" .
+        'Please call FunctionMock::createMockFunctionDefinition(\'' . $functionName . '\') to create a mock version of it.';
  
       parent::__construct($this->message, $code, $previous);
   }
