@@ -2,7 +2,6 @@
 
 define('TOKEN_CODE', 0);
 define('TOKEN_VALUE', 1);
-define('SPACE_CODE', 371);
 
 define('DEFAULT_STUB_VALUE', 'default_stub_value');
 define('NO_TOKEN_FOUND_CODE', -999);
@@ -101,7 +100,7 @@ class FunctionMock
       return array(TOKEN_CODE => NO_TOKEN_FOUND_CODE);
     }
 
-    while ($tokens[$counter][TOKEN_CODE] === SPACE_CODE &&
+    while ($tokens[$counter][TOKEN_CODE] === T_WHITESPACE &&
             $counter >= 0) {
       $counter--;  
     }
@@ -127,7 +126,7 @@ class FunctionMock
       return array(TOKEN_CODE => NO_TOKEN_FOUND_CODE);
     }
 
-    while ($tokens[$counter][TOKEN_CODE] === SPACE_CODE &&
+    while ($tokens[$counter][TOKEN_CODE] === T_WHITESPACE &&
             $counter < count($tokens)) {
       $counter++;  
     }
@@ -151,7 +150,7 @@ class FunctionMock
     // Do a token based search next based on the loaded files, which is closer but picks up some 
     // strings that don't entirely match.
     $tokens = token_get_all($completeFile);
-
+        
     $result = array();
 
     for ($i = 0; $i < count($tokens); $i++) {
@@ -190,11 +189,11 @@ class FunctionMock
           continue;
       }
 
-      if ($prevToken[TOKEN_CODE] === T_NEW) {
+      if ($prevToken[TOKEN_CODE] === T_NEW) {          
           // It's a class instantiation.
           continue;
       }
-
+      
       // If it gets all the way here, it's a function call.
       $result[] = $token[TOKEN_VALUE];
     }
