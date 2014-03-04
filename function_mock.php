@@ -11,7 +11,20 @@ define('NO_TOKEN_FOUND_CODE', -999);
  */
 class FunctionMock
 {
+  /**
+   * An array of keyed by names of stubbed functions that stores return values 
+   * for stubbed functions.
+   * 
+   * @var array
+   */
   private static $stubFunctionList = array();
+  
+  /**
+   * An array of mocked states keyed by function names.
+   * 
+   * @var array 
+   */
+  private static $mockStates = array();
 
   /**
    * Returns a stubbed value based on the function name.
@@ -30,6 +43,8 @@ class FunctionMock
       } else {
         return self::$stubFunctionList[$functionName][DEFAULT_STUB_VALUE];
       }
+    } else if (array_key_exists($functionName, self::$mockStates)) {
+      self::$mockStates[$functionName][serialize($paramList)][] = TRUE;
     } else {
       throw new StubMissingException($functionName);
     } 
@@ -73,6 +88,53 @@ class FunctionMock
       self::$stubFunctionList[$functionName][DEFAULT_STUB_VALUE] = $returnValue;
     }
   }
+  
+  /**
+   * Sets up a mock i.e. behaviour verification for a given function.
+   * 
+   * @param String $functionName
+   *   The name of the function to retrieve the stubbed value from.
+   * @param String $context
+   *   A description of context in which behavior is observed.
+   * @throws FunctionDoesNotExistException
+   */
+  public static function mock($functionName) {
+    if (!function_exists($functionName)) {
+      throw new FunctionDoesNotExistException($functionName);
+    }
+    
+    self::$mockStates[$functionName] = array();
+  }
+  
+  /**
+   * Returns number of times mocked function was called.
+   * 
+   * @param $functionName 
+   * @param ... Any parameters that mock is expected to be called with.
+   * 
+   * @return Number of times a function aws called with given list of parameters.
+   * 
+   * @throws FunctionDoesNotExistException
+   */
+  public static function verifyMockTimesCalled($functionName) {
+    if (!isset(self::$mockStates[$functionName])) {
+      throw new FunctionWasNotMockedException($functionName);
+    }
+    
+    $paramList = func_get_args();
+    // Remove function name from array, leaving only arguments.
+    array_shift($paramList);
+    
+    $paramList = !empty($paramList) ? $paramList : NULL;
+    
+    $serialized_param_list = serialize($paramList);    
+    
+    if (isset(self::$mockStates[$functionName][$serialized_param_list])) {
+      return count(self::$mockStates[$functionName][$serialized_param_list]);
+    }
+
+    return 0;
+  }
 
   /**
    * Resets all the stubbed functions.
@@ -80,6 +142,14 @@ class FunctionMock
   public static function resetStubs() {
     // Just empty the array.
     self::$stubFunctionList = array();
+  }
+  
+  /**
+   * Resets all the mocks.
+   */
+  public static function resetMocks() {
+    // Just empty the array.
+    self::$mockStates = array();
   }
 
   /**
@@ -199,7 +269,7 @@ class FunctionMock
     }
 
     // Look for functions that do not exist. These are the ones that need to be mocked.
-    $result = array_filter($result, function($function) { return !function_exists(trim($function)); });  
+    $result = array_filter($result, function($function) { return !function_exists(trim($function)); });
 
     return $result;
   }
@@ -231,9 +301,10 @@ class FunctionMock
    * @return
    *   PHP function definition code that was executed.
    */  
-  public static function createMockFunctionDefinition($functionName) {
-    $newFunctionDefinition = 'function ' . $functionName . '() { return FunctionMock::getStubbedValue(__FUNCTION__, count(func_get_args()) > 0 ? func_get_args() : NULL); } ';
-
+  public static function createMockFunctionDefinition($functionName) {    
+    $newFunctionDefinition = 'function ' . $functionName 
+      . '() { return FunctionMock::getStubbedValue(__FUNCTION__, count(func_get_args()) > 0 ? func_get_args() : NULL); } ';
+    
     if (!function_exists($functionName)) {
       eval($newFunctionDefinition);
     }
@@ -308,6 +379,23 @@ class FunctionDoesNotExistException extends Exception
       parent::__construct($this->message, $code, $previous);
   }
 
+  public function __toString() {
+    return $this->message;
+  }
+}
+
+/**
+ * Custom exception for not mocked functions.
+ */
+class FunctionWasNotMockedException extends Exception
+{
+  public function __construct($functionName, $code = 0, Exception $previous = null) {
+      $this->message = $functionName . ' was not mocked.' . "\r\n" .
+        'Please call FunctionMock::mock(\'' . $functionName . '\') to create a mock for it.';
+ 
+      parent::__construct($this->message, $code, $previous);
+  }
+  
   public function __toString() {
     return $this->message;
   }

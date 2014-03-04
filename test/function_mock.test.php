@@ -26,7 +26,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     FunctionMock::stub($functionName, $testStubValue);
 
     // Check that it sets it correctly.
-    $this->assertEquals($testStubValue, testStub());    
+    $this->assertEquals($testStubValue, testStub());
   }
 
   public function testGetStubbedValueForStub() {
@@ -127,6 +127,47 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $result = _block_get_cache_id($block);
 
     $this->assertEquals(':', $result);
+  }
+  
+  public function testMockWithNoParams () {
+    // Set up the test input.
+    
+    $functionName = 'testMock';
+
+    FunctionMock::createMockFunctionDefinition($functionName);
+    FunctionMock::mock($functionName);
+
+    // Make calls to stubbed function.
+    testMock();
+    testMock();
+    testMock();
+    
+    $this->assertEquals(3, FunctionMock::verifyMockTimesCalled($functionName));
+  }
+  
+  public function testMockWithParams () {
+    // Set up the test input.
+    
+    $functionName = 'testMockWithParams';
+
+    FunctionMock::createMockFunctionDefinition($functionName);
+    FunctionMock::mock($functionName);
+
+    // Create testing params
+    $arg1 = 125;
+    $arg2 = "Test String";
+    $arg3 = array('a', 'b', 5);
+    $arg4 = new stdClass();
+    $arg4->a = 'a';
+    $arg4->b = 22;
+    
+    
+    // Check that it sets it correctly.
+    testMockWithParams($arg1, $arg2);
+    testMockWithParams($arg3, $arg4, $arg1);    
+    
+    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg1, $arg2));
+    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg3, $arg4, $arg1));
   }
 
   // TODO: Write some exception handling cases.
