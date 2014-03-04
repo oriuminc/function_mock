@@ -2,13 +2,12 @@
 
 define('TOKEN_CODE', 0);
 define('TOKEN_VALUE', 1);
-define('SPACE_CODE', 371);
 
 define('DEFAULT_STUB_VALUE', 'default_stub_value');
 define('NO_TOKEN_FOUND_CODE', -999);
 
 $s = token_get_all(" ");
-define('T_WHITESPACE', $s[0][0]);
+define('SPACE_CODE', $s[0][0]);
 
 /**
  * Class that supports stubbing functions.
