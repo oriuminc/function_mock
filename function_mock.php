@@ -6,9 +6,6 @@ define('TOKEN_VALUE', 1);
 define('DEFAULT_STUB_VALUE', 'default_stub_value');
 define('NO_TOKEN_FOUND_CODE', -999);
 
-$s = token_get_all(" ");
-define('SPACE_CODE', $s[0][0]);
-
 /**
  * Class that supports stubbing functions.
  */
@@ -103,7 +100,7 @@ class FunctionMock
       return array(TOKEN_CODE => NO_TOKEN_FOUND_CODE);
     }
 
-    while ($tokens[$counter][TOKEN_CODE] === SPACE_CODE &&
+    while ($tokens[$counter][TOKEN_CODE] === T_WHITESPACE &&
             $counter >= 0) {
       $counter--;  
     }
@@ -129,7 +126,7 @@ class FunctionMock
       return array(TOKEN_CODE => NO_TOKEN_FOUND_CODE);
     }
 
-    while ($tokens[$counter][TOKEN_CODE] === SPACE_CODE &&
+    while ($tokens[$counter][TOKEN_CODE] === T_WHITESPACE &&
             $counter < count($tokens)) {
       $counter++;  
     }
