@@ -8,3 +8,4 @@ branches:
     - master
 before_script: cd ./test
 script: phpunit function_mock.test.php
+
