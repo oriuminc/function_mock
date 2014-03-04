@@ -160,14 +160,27 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $arg4 = new stdClass();
     $arg4->a = 'a';
     $arg4->b = 22;
+    $arg5 = NULL;
+    $arg6 = true;
     
     
     // Check that it sets it correctly.
     testMockWithParams($arg1, $arg2);
-    testMockWithParams($arg3, $arg4, $arg1);    
-    
     $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg1, $arg2));
+    
+    testMockWithParams($arg3, $arg4, $arg1);
     $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg3, $arg4, $arg1));
+    
+    testMockWithParams($arg5, $arg6, $arg4);
+    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg3, $arg4, $arg1));
+  }
+  
+  /**
+   * @expectedException        FunctionWasNotMockedException
+   * @expectedExceptionMessage nonExistentMock was not mocked.
+   */
+  public function testVerifyMockCalledForNonExistingMock() {
+    $actualResult = FunctionMock::verifyMockTimesCalled('nonExistentMock');
   }
 
   // TODO: Write some exception handling cases.
