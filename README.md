@@ -1,4 +1,5 @@
 # Function Mocking Framework
+[![Build Status](https://travis-ci.org/myplanetdigital/function_mock.png?branch=master)](https://travis-ci.org/myplanetdigital/function_mock)
 
 Generic PHP framework to help generate function stubs that haven't been defined in a given file. Use in conjunction with [PHPUnit](https://github.com/sebastianbergmann/phpunit/) for unit testing. See [this article](http://martinfowler.com/articles/mocksArentStubs.html) for more information about mocks and stubs.
 
