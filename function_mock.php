@@ -6,6 +6,9 @@ define('TOKEN_VALUE', 1);
 define('DEFAULT_STUB_VALUE', 'default_stub_value');
 define('NO_TOKEN_FOUND_CODE', -999);
 
+define('HAS_RUNKIT', function_exists('runkit_function_redefine'));
+define('RUNKIT_COPY_SUFFIX', '_function_mock_runkit_copy');
+
 /**
  * Class that supports stubbing functions.
  */
@@ -26,6 +29,11 @@ class FunctionMock
    */
   private static $mockStates = array();
 
+  /**
+   * An array of function names under which other defined functiona are temporarily stored.
+   */
+  private static $existingFunctionCopies = array();
+  
   /**
    * Returns a stubbed value based on the function name.
    *
@@ -150,6 +158,16 @@ class FunctionMock
   public static function resetMocks() {
     // Just empty the array.
     self::$mockStates = array();
+  }
+  
+  /**
+   * Resets existing functions that were redefined with runkit to original.
+   */
+  public static function resetExistingFunctionsMocks() {
+    foreach (self::$existingFunctionCopies as $functionName => $functionCopyName) {
+      runkit_function_copy($functionCopyName, $functionName);
+      runkit_function_remove($functionCopyName);
+    }
   }
 
   /**
@@ -301,17 +319,30 @@ class FunctionMock
    * @return
    *   PHP function definition code that was executed.
    */  
-  public static function createMockFunctionDefinition($functionName) {    
-    $newFunctionDefinition = 'function ' . $functionName 
-      . '() { return FunctionMock::getStubbedValue(__FUNCTION__, count(func_get_args()) > 0 ? func_get_args() : NULL); } ';
+  public static function createMockFunctionDefinition($functionName) {
+    
+    $mockfunctionBody = 'return FunctionMock::getStubbedValue(__FUNCTION__, count(func_get_args()) > 0 ? func_get_args() : NULL);';
+    $newFunctionDefinition = 'function ' . $functionName . '() { ' . $mockfunctionBody . ' } ';
     
     if (!function_exists($functionName)) {
       eval($newFunctionDefinition);
     }
+    else {
+      if (HAS_RUNKIT) {
+        $runkitCopyFunctionName = $functionName . RUNKIT_COPY_SUFFIX;
+        runkit_function_copy($functionName, $runkitCopyFunctionName);
+        self::$existingFunctionCopies[$functionName] = $runkitCopyFunctionName;
+        
+        runkit_function_redefine($functionName, '', $mockfunctionBody);
+      }
+      else {
+        throw new RunKitNotInstalledException($functionName);
+      }
+    }
 
     return $newFunctionDefinition;
-  }  
-
+  }
+  
   /**
    * Generate actual function definitions that can be stubbed, based on an array of function names.
    *
@@ -392,6 +423,23 @@ class FunctionWasNotMockedException extends Exception
   public function __construct($functionName, $code = 0, Exception $previous = null) {
       $this->message = $functionName . ' was not mocked.' . "\r\n" .
         'Please call FunctionMock::mock(\'' . $functionName . '\') to create a mock for it.';
+ 
+      parent::__construct($this->message, $code, $previous);
+  }
+  
+  public function __toString() {
+    return $this->message;
+  }
+}
+
+/**
+ * Custom exception to notify about absence of runkit.
+ */
+class RunKitNotInstalledException extends Exception
+{
+  public function __construct($functionName, $code = 0, Exception $previous = null) {
+      $this->message = 'Mock definition can not be created for function ' . $functionName . ' .' . "\r\n" .
+        'Please install runkit php library (https://github.com/zenovich/runkit) to provide this ability.';
  
       parent::__construct($this->message, $code, $previous);
   }
