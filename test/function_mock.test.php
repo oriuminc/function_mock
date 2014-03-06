@@ -105,6 +105,27 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     }
   }
 
+  public function testStubMissingExceptionHelpful() {
+    // Test functions that haven't been stubbed yet and see that it returns
+    // a helpful message for what to return.
+    $testStubValue = 3;
+    $functionName = 'firstStub';
+
+    // Create the mock definition, but don't stub it just yet.
+    FunctionMock::createMockFunctionDefinition($functionName);
+
+    // Test first that the stub exists and works.
+    try {
+      testResetStub();
+      $this->fail('Should have thrown a StubMissingException');
+    } catch (StubMissingException $e) {
+      // Expected behavior.
+      print_r($e->__toString());
+      return;
+    }
+  }
+
+
   public function testSomeDrupalBlockModuleFunctions() {
     // Generate a stub method dynamically and ensure you can call it.
     $result = FunctionMock::generateMockFunctions(array('./block.module'));
@@ -129,7 +150,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(':', $result);
   }
   
-  public function testMockWithNoParams () {
+  public function testMockWithNoParams() {
     // Set up the test input.
     
     $functionName = 'testMock';
@@ -145,7 +166,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, FunctionMock::verifyMockTimesCalled($functionName));
   }
   
-  public function testMockWithParams () {
+  public function testMockWithParams() {
     // Set up the test input.
     
     $functionName = 'testMockWithParams';
