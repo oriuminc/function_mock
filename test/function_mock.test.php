@@ -120,7 +120,6 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
       $this->fail('Should have thrown a StubMissingException');
     } catch (StubMissingException $e) {
       // Expected behavior.
-      print_r($e->__toString());
       return;
     }
   }
@@ -148,8 +147,22 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $result = _block_get_cache_id($block);
 
     $this->assertEquals(':', $result);
+
+    // Try another function with db_query.
+    $delta = '';
+
+    $blockReturn = (object) array('body' => array(), 'format' => '', 'delta' => '');
+    $stubDbQueryObject = new DBQueryStubObject($blockReturn);
+
+    FunctionMock::stub('db_query', $stubDbQueryObject);
+    FunctionMock::stub('check_markup', 'testContent');
+
+    $actual_result = block_block_view($delta);
+
+    $this->assertEquals(NULL, $actual_result['subject']);
+    $this->assertEquals('testContent', $actual_result['content']);
   }
-  
+ 
   public function testMockWithNoParams() {
     // Set up the test input.
     
@@ -220,4 +233,18 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
   //   $this->assertEquals($testStubValue, testStub());        
   // }  
 }
+
+class DBQueryStubObject
+{
+  private $valueToReturn;
+
+  public function __construct($valueToReturn) {
+    $this->valueToReturn = $valueToReturn;
+  }
+
+  public function fetchObject() {
+    return $this->valueToReturn;
+  }
+}  
+
 ?>
