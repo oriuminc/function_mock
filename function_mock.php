@@ -5,6 +5,7 @@ define('TOKEN_VALUE', 1);
 
 define('DEFAULT_STUB_VALUE', 'default_stub_value');
 define('NO_TOKEN_FOUND_CODE', -999);
+define('NEW_LINE', "\r\n");
 
 define('HAS_RUNKIT', function_exists('runkit_function_redefine'));
 define('RUNKIT_COPY_SUFFIX', '_function_mock_runkit_copy');
@@ -59,7 +60,7 @@ class FunctionMock
   }
 
   /**
-   * Checks with a stub based on a set of parameters exists.
+   * Checks if a stub based on a set of parameters exists.
    *
    * @param $functionName
    *   The name of the function to retrieve the stubbed value from.
@@ -387,8 +388,9 @@ class FunctionMock
 class StubMissingException extends Exception
 {
   public function __construct($functionName, $code = 0, Exception $previous = null) {
-      $this->message = $functionName . ' has not been stubbed yet.' . "\r\n" .
-        'Please call FunctionMock::stub(\'' . $functionName . '\', <stub_value>) to set a value.';
+      $this->message = NEW_LINE . $functionName . ' has not been stubbed yet.' . NEW_LINE 
+        . 'Please call FunctionMock::stub(\'' . $functionName . '\', <default_stub_value>) to set a return value for any set of parameters.' . NEW_LINE 
+        . 'If you return a stub value based on a specific set of parameters, use FunctionMock::stub(\'' . $functionName . '\', <stub_value>, <array of parameters>).' . NEW_LINE;
  
       parent::__construct($this->message, $code, $previous);
   }

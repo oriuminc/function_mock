@@ -1,4 +1,5 @@
 # Function Mocking Framework
+[![Build Status](https://travis-ci.org/myplanetdigital/function_mock.png?branch=master)](https://travis-ci.org/myplanetdigital/function_mock)
 
 Generic PHP framework to help generate function stubs that haven't been defined in a given file. Use in conjunction with [PHPUnit](https://github.com/sebastianbergmann/phpunit/) for unit testing. See [this article](http://martinfowler.com/articles/mocksArentStubs.html) for more information about mocks and stubs.
 
@@ -155,3 +156,7 @@ Please feel free to log any issues or suggestions for this framework. So far, he
 * Some general clean up work in `function_mock` to separate some of its functionality.
 * Some more documentation for where to put the framework code if using Drupal, or straight PHP.
 * Documentation for error scenarios, plus some additional tests.
+
+## License
+
+This projected is licensed under the terms of the MIT license.

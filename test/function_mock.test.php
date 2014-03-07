@@ -105,31 +105,26 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     }
   }
 
-  public function testSomeDrupalBlockModuleFunctions() {
-    // Generate a stub method dynamically and ensure you can call it.
-    $result = FunctionMock::generateMockFunctions(array('./block.module'));
+  public function testStubMissingExceptionHelpful() {
+    // Test functions that haven't been stubbed yet and see that it returns
+    // a helpful message for what to return.
+    $testStubValue = 3;
+    $functionName = 'firstStub';
 
-    // The concept here is to assume that all the Drupal based functions work 
-    // as intended, and simply control the return values to what you'd expect
-    // in your test scenario. This gives you control to test different scenarios
-    // and verify the results.
-    global $user;
-    $user = (object) array('uid' => 12345);
+    // Create the mock definition, but don't stub it just yet.
+    FunctionMock::createMockFunctionDefinition($functionName);
 
-    define('DRUPAL_NO_CACHE', 1);
-    define('DRUPAL_CACHE_CUSTOM', 2);
-
-    $block = (object) array('cache' => array(), 'module' => '', 'delta' => '');
-
-    FunctionMock::stub('variable_get', TRUE);
-    FunctionMock::stub('drupal_render_cid_parts', array());
-
-    $result = _block_get_cache_id($block);
-
-    $this->assertEquals(':', $result);
+    // Test first that the stub exists and works.
+    try {
+      testResetStub();
+      $this->fail('Should have thrown a StubMissingException');
+    } catch (StubMissingException $e) {
+      // Expected behavior.
+      return;
+    }
   }
   
-  public function testMockWithNoParams () {
+  public function testMockWithNoParams() {
     // Set up the test input.
     
     $functionName = 'testMock';
@@ -145,7 +140,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, FunctionMock::verifyMockTimesCalled($functionName));
   }
   
-  public function testMockWithParams () {
+  public function testMockWithParams() {
     // Set up the test input.
     
     $functionName = 'testMockWithParams';
@@ -173,12 +168,6 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     
     testMockWithParams($arg5, $arg6, $arg4);
     $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg5, $arg6, $arg4));
-    
-    FunctionMock::createMockFunctionDefinition('strreplace');
-    FunctionMock::mock('str_replace');
-    
-    str_replace($arg2, $arg3, $arg4);
-    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled('str_replace', $arg2, $arg3, $arg4));
   }
   
   /**
@@ -187,6 +176,20 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
    */
   public function testVerifyMockCalledForNonExistingMock() {
     $actualResult = FunctionMock::verifyMockTimesCalled('nonExistentMock');
+  }
+  
+  public function testMockInternalFunction() {
+    $internalFunctionName = 'str_replace';
+    
+    FunctionMock::createMockFunctionDefinition($internalFunctionName);
+    FunctionMock::mock($internalFunctionName);
+    
+    $arg2 = "Test String";
+    $arg3 = array('a', 'b', 5);
+    $arg4 = new stdClass();
+    
+    str_replace($arg2, $arg3, $arg4);
+    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled('str_replace', $arg2, $arg3, $arg4));
   }
 
   // TODO: Write some exception handling cases.
@@ -205,4 +208,18 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
   //   $this->assertEquals($testStubValue, testStub());        
   // }  
 }
+
+class DBQueryStubObject
+{
+  private $valueToReturn;
+
+  public function __construct($valueToReturn) {
+    $this->valueToReturn = $valueToReturn;
+  }
+
+  public function fetchObject() {
+    return $this->valueToReturn;
+  }
+}  
+
 ?>
