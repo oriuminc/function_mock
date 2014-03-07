@@ -17,6 +17,6 @@ install:
   - PHP_INI=$(php --ini | grep "Loaded Configuration File" | awk '{print $4}')
   - echo "extension=runkit.so" >> $PHP_INI
   - echo "runkit.internal_override = TRUE" >> $PHP_INI
-before_script:  
+before_script:
   - cd $PROJECT_DIR/test
 script: phpunit function_mock.test.php
