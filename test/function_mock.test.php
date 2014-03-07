@@ -123,46 +123,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
       return;
     }
   }
-
-
-  public function testSomeDrupalBlockModuleFunctions() {
-    // Generate a stub method dynamically and ensure you can call it.
-    $result = FunctionMock::generateMockFunctions(array('./block.module'));
-
-    // The concept here is to assume that all the Drupal based functions work 
-    // as intended, and simply control the return values to what you'd expect
-    // in your test scenario. This gives you control to test different scenarios
-    // and verify the results.
-    global $user;
-    $user = (object) array('uid' => 12345);
-
-    define('DRUPAL_NO_CACHE', 1);
-    define('DRUPAL_CACHE_CUSTOM', 2);
-
-    $block = (object) array('cache' => array(), 'module' => '', 'delta' => '');
-
-    FunctionMock::stub('variable_get', TRUE);
-    FunctionMock::stub('drupal_render_cid_parts', array());
-
-    $result = _block_get_cache_id($block);
-
-    $this->assertEquals(':', $result);
-
-    // Try another function with db_query.
-    $delta = '';
-
-    $blockReturn = (object) array('body' => array(), 'format' => '', 'delta' => '');
-    $stubDbQueryObject = new DBQueryStubObject($blockReturn);
-
-    FunctionMock::stub('db_query', $stubDbQueryObject);
-    FunctionMock::stub('check_markup', 'testContent');
-
-    $actual_result = block_block_view($delta);
-
-    $this->assertEquals(NULL, $actual_result['subject']);
-    $this->assertEquals('testContent', $actual_result['content']);
-  }
- 
+  
   public function testMockWithNoParams() {
     // Set up the test input.
     
