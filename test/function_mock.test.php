@@ -172,7 +172,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg3, $arg4, $arg1));
     
     testMockWithParams($arg5, $arg6, $arg4);
-    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg3, $arg4, $arg1));
+    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg5, $arg6, $arg4));
   }
   
   /**
