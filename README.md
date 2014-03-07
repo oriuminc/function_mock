@@ -156,3 +156,7 @@ Please feel free to log any issues or suggestions for this framework. So far, he
 * Some general clean up work in `function_mock` to separate some of its functionality.
 * Some more documentation for where to put the framework code if using Drupal, or straight PHP.
 * Documentation for error scenarios, plus some additional tests.
+
+## License
+
+This projected is licensed under the terms of the MIT license.
