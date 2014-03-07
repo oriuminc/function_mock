@@ -173,6 +173,12 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     
     testMockWithParams($arg5, $arg6, $arg4);
     $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg5, $arg6, $arg4));
+    
+    FunctionMock::createMockFunctionDefinition('strreplace');
+    FunctionMock::mock('str_replace');
+    
+    str_replace($arg2, $arg3, $arg4);
+    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled('str_replace', $arg2, $arg3, $arg4));
   }
   
   /**
