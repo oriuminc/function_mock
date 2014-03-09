@@ -167,7 +167,7 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg3, $arg4, $arg1));
     
     testMockWithParams($arg5, $arg6, $arg4);
-    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg3, $arg4, $arg1));
+    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled($functionName, $arg5, $arg6, $arg4));
   }
   
   /**
@@ -176,6 +176,20 @@ class FunctionMockTest extends PHPUnit_Framework_TestCase
    */
   public function testVerifyMockCalledForNonExistingMock() {
     $actualResult = FunctionMock::verifyMockTimesCalled('nonExistentMock');
+  }
+  
+  public function testMockInternalFunction() {
+    $internalFunctionName = 'str_replace';
+    
+    FunctionMock::createMockFunctionDefinition($internalFunctionName);
+    FunctionMock::mock($internalFunctionName);
+    
+    $arg2 = "Test String";
+    $arg3 = array('a', 'b', 5);
+    $arg4 = new stdClass();
+    
+    str_replace($arg2, $arg3, $arg4);
+    $this->assertEquals(1, FunctionMock::verifyMockTimesCalled('str_replace', $arg2, $arg3, $arg4));
   }
 
   // TODO: Write some exception handling cases.
