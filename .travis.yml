@@ -12,7 +12,7 @@ install:
   - cd /tmp
   - git clone https://github.com/zenovich/runkit.git
   - cd runkit
-  - git checkout 1.0.3
+  - git checkout master
   - pecl install package.xml
   - PHP_INI=$(php --ini | grep "Loaded Configuration File" | awk '{print $4}')
   - echo "extension=runkit.so" >> $PHP_INI
